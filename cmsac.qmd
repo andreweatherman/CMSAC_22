@@ -1,0 +1,17 @@
+---
+title: "College Basketball: A Sport Starving for Data"
+subtitle: "Carnegie Mellon Sports Analytics Conference, 2022"
+author: "Andrew Weatherman"
+---
+
+## Abstract
+
+College basketball is one of the most-watched college sports in America -- and that interest is only growing. Last season's national championship game drew the largest tournament finals television audience in pay-TV history; the semi-final before it stands as the second most-watched men's tournament game -- ever.
+
+Despite soaring interest -- and notably unlike its revenue-generating college brother, football -- access to quality, open-source data is sparse at best. Packages like `hoopR` exist to pull data from KenPom, but if you do not have a paid subscription -- or you care about statistics other than advanced metrics -- you are simply out of luck.
+
+That is where `toRvik` comes to play: The only college basketball-exclusive package hosted by CRAN. `toRvik` bridges the gap between analyst and data: Building models and forecasts is time-intensive work, and `toRvik` aims to lessen that load by offering immediate access to the most extensive, granular statistics publicly available.
+
+With one line of code, you can pull game-by-game player statistics for every single game back to 2008 -- well over 70 million observations. The package also offers the ability to seamlessly examine T-Rank, an industry-recognized predictive rating system, on meaningful, detailed splits. With `toRvik`, you can investigate the correlation between coaching performance and roster talent; transfer tendencies and usage rate; player shooting and arena location; and much more.
+
+The package consists of over twenty functions -- with an update soon bringing recruiting and historical data to `toRvik`.
