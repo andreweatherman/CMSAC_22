@@ -20,7 +20,7 @@ reference-location: section
 
 ```{r, include=FALSE}
 library(knitr)
-opts_chunk$set(tidy.opts=list(width.cutoff=100),tidy=TRUE)
+opts_chunk$set(tidy.opts=list(width.cutoff=100),tidy=FALSE)
 def.chunk.hook  <- knitr::knit_hooks$get("chunk")
 knitr::knit_hooks$set(chunk = function(x, options) {
   x <- def.chunk.hook(x, options)
@@ -85,7 +85,7 @@ Constructing models, digging for insights, and designing visualizations are time
 
 Benchmarks of select functions over 25 trials can be found below.
 
-```{r, message=FALSE, warning=FALSE, size='small'}
+```{r, message=FALSE, warning=FALSE, size='small', tidy=FALSE}
 library(microbenchmark)
 library(knitr)
 
@@ -98,7 +98,7 @@ results <- summary(microbenchmark(
   `Player Splits` = toRvik::bart_player_splits(year=2022, split='result'),
   `Player Season` = toRvik::bart_player_season(year=2022, stat='box'),
   `Player Game` = toRvik::bart_player_game(year=2022, stat='box'),
-  times = 25L,
+  times = 1L,
   unit = 'seconds'
 ))
 
@@ -123,7 +123,7 @@ These hyper-specific data points allow us to answer some ridiculous questions li
 
 ### It's a dunk fest:
 
-```{r, message=FALSE, warning=FALSE, size='small'}
+```{r, message=FALSE, warning=FALSE, size='small', tidy=FALSE}
 library(data.table)
 library(lubridate)
 library(knitr)
@@ -137,8 +137,11 @@ data <- data[, .(date=as_date(date), id, player, team, dunk_m, game_bin=ceiling(
 # calculate rolling sums over each three-game window
 data <- data[, dunk_sum := Reduce(`+`, dunk_m), by=.(id, game_bin)][, .(player, team, dunk_sum, date, game_bin)]
 
-# Collapse the first and last date in each three-game window as a separate column to create a 'date range' for plotting purposes
-data <- unique(data[, .(team, dunk_sum, date, date_parsed = glue::glue("{format(min(date), format='%b. %e')} - {format(max(date), format='%b. %e')}")), .(player, game_bin)][,-c('date', 'game_bin')][order(-dunk_sum)])
+# Collapse the first and last date in each three-game window as a separate column to create a 
+# 'date range' for plotting purposes
+data <- unique(data[, .(team, dunk_sum, date, 
+        date_parsed = glue::glue("{format(min(date), format='%b. %e')} - {format(max(date), format='%b. %e')}")), 
+        .(player, game_bin)][,-c('date', 'game_bin')][order(-dunk_sum)])
 
 # set clear column names
 setnames(data, c('Player', 'Team', 'Total Dunks', 'Game Range'))
@@ -184,7 +187,7 @@ kable(data, format = 'simple',
 
 Splittable stats is not a feature exclusive to player data. `toRvik` offers detailed team splits along several variables, including game result, game type, date range (start and/or end), location, and last `n` games. These splits summarize two-sided four factor data, adjusted efficiency, and tempo while aggregating total wins and losses -- allowing us to answer questions like: **Which ACC team gets to the line at the highest rate during home conference games?**
 
-```{r, message=FALSE, warning=FALSE, size='small'}
+```{r, message=FALSE, warning=FALSE, size='small', tidy=FALSE}
 library(data.table)
 library(glue)
 library(knitr)
@@ -204,7 +207,8 @@ setnames(data, c('Team', 'Record', 'Free Throw Rate'))
 
 # plot
 kable(data[(1:5)], format='simple',
-      caption = 'Which ACC team gets to the line most in home conference games?')
+      caption = 'Which ACC team gets to the line most in home conference 
+      games?')
 ```
 
 # Transfers and Recruits:
@@ -219,10 +223,12 @@ The existence of this data presents exciting research and analytic opportunities
 
 Sourcing transfer data is a challenging ask in men's basketball. Often, announcements are buried in player tweets or program releases. Luckily, Verbal Commits, a leader in tracking player movement, has a public-facing collection of transfer decisions back to 2012. Coupled with `toRvik`'s extensive player statistic database, we can answer questions like: **Do mid-major transfers see a dip in efficiency after joining a high-major program?**
 
-```{r, message=FALSE, warning=FALSE, size='small'}
+```{r, message=FALSE, warning=FALSE, size='small', tidy=FALSE}
 library(data.table)
 library(showtext)
 library(ggplot2)
+# qdapRegex is only needed to render code chunk wrapping, not to run the script
+library(qdapRegex)
 
 # get all transfer data for mid-to-high major transfers
 hm <- c('ACC', 'B10', 'B12', 'P10', 'P12', 'SEC')
@@ -262,11 +268,14 @@ averages[complete.cases(averages)] |>
         plot.caption.position = 'plot',
         axis.text = element_text(family='inter'),
         axis.title = element_text(family='inter', size=8)) +
-    labs(title='How often do mid-major transfers shine at high-major programs?',
-       subtitle = 'Tracking adjusted offensive efficiency from first-time transfers between mid- to high-major schools',
-       caption = 'Adjusted offensive efficiency represents estimated points produced per 100 possessions scaled to opponent strength. Data points are \nrestricted to players with at least 15 games and 30% of team minutes played in a given season.',
+    labs(title = 'How often do mid-major transfers shine at high-major programs?',
+       subtitle = rm_white('Tracking adjusted offensive efficiency from first-time transfers between 
+                                      mid- to high-major schools'),
+       caption = rm_white('Adjusted offensive efficiency represents estimated points produced per 100 
+                           possessions scaled to opponent strength. Data points are \nrestricted to players 
+                           with at least 15 games and 30% of team minutes played in a season.'),
         x = 'Pre-Transfer Adj. OE',
-       y = 'Post-Transfer Adj. OE')
+        y = 'Post-Transfer Adj. OE')
 
 
 ```
@@ -275,7 +284,7 @@ averages[complete.cases(averages)] |>
 
 In addition to state, positional, and national rankings across three major services, the recruiting data set also returns prospect high school and hometown. With this information, we can answer questions like: **Which southern state produces the most basketball talent?**
 
-```{r, message=FALSE, warning=FALSE, size='small'}
+```{r, message=FALSE, warning=FALSE, size='small', tidy=FALSE}
 library(data.table)
 library(usmap)
 library(ggplot2)
@@ -287,7 +296,6 @@ players <- data.table(toRvik::player_recruiting_rankings(stars=5))
 # aggregate player count by state
 count <- players[,.(total=.N), state]
 
-# plot
 southeast <- c('VA', 'NC', 'SC', 'GA', 'FL', 'TN', 'AL', 'MS', 'KY')
 font_add_google(name = 'Oswald', family='oswald')
 font_add_google(name = 'Inter', family='inter')
@@ -331,11 +339,13 @@ The popular college basketball analytics site barttorvik.com, the namesake of `t
 
 `bart_game_prediction` returns the expected score and win percentage, projected points per possession, and pace of play for two teams on any given day at any given venue (home, away, or neutral). While barttorvik.com returns expected score and win percentage for set games, there is no way to customize dates and locations or test unscheduled games. Want to know how your favorite team would stack up against Duke in Cameron Indoor Stadium in mid-January? Previously, you would have to go scrape the data and run the calculations yourself. But with `toRvik`, game predictions are just a line of code away.
 
-```{r, message=FALSE, warning=FALSE, size='small'}
+```{r, message=FALSE, warning=FALSE, size='small', tidy=FALSE}
 library(knitr)
 
-data <- toRvik::bart_game_prediction(team='Charlotte', opp='Duke', date='20220113', location='A')
-
+data <- toRvik::bart_game_prediction(team='Charlotte', 
+                                     opp='Duke', 
+                                     date='20220113', 
+                                     location='A')
 kable(data, format = 'simple')
 ```
 
@@ -345,14 +355,15 @@ Extending the core functionality of the game prediction model leads to `bart_tou
 
 As the season approaches, `bart_tournament_prediction` will be updated to include support for MTEs (multiple-team events; in-season, non-conference tournaments) and overhauled table returns for full NCAA and conference tournament simulations.
 
-```{r, message=FALSE, warning=FALSE, eval=FALSE, size='small'}
+```{r, message=FALSE, warning=FALSE, eval=FALSE, size='small', tidy=FALSE}
 library(data.table)
 library(purrr)
 library(gt)
 library(gtExtras)
 
 # list all possible East region opponents
-possible_teams <- c('Baylor', 'Norfolk St.', 'North Carolina', 'Marquette', "Saint Mary's", 'Indiana', 'UCLA', 'Akron', 'Texas', 'Virginia Tech', 'Purdue', 'Yale', 'Murray St.', 'San Francisco', 'Kentucky', "Saint Peter's")
+possible_teams <- c('Baylor', 'Norfolk St.', 'North Carolina', 'Marquette', "Saint Mary's", 'Indiana', 'UCLA', 
+                    'Akron', 'Texas', 'Virginia Tech', 'Purdue', 'Yale', 'Murray St.', 'San Francisco', 'Kentucky', "Saint Peter's")
 
 # loop through each opponent
 results <- data.table(map_dfr(.x = possible_teams,
@@ -378,7 +389,9 @@ results[order(Champ)][(1:8)] |>
   cols_align(align='center', columns = c('Wins', 'Finals', 'Champ')) |>
   gt_highlight_rows(rows=5) |> 
   tab_header(title="How hard a draw was UNC?",
-             subtitle=html('Running 100 simulations of possible opponents<br>for Duke in the 2022 Final Four reveals which<br>ones might have led to the hardest path to glory'))
+             subtitle=html('Running 100 simulations of possible 
+                           opponents<br>for Duke in the 2022 Final Four reveals which<br>ones might have 
+                           led to the hardest path to glory'))
 ```
 
 ```{r, echo=FALSE, fig.align='center'}
