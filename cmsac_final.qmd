@@ -98,7 +98,7 @@ results <- summary(microbenchmark(
   `Player Splits` = toRvik::bart_player_splits(year=2022, split='result'),
   `Player Season` = toRvik::bart_player_season(year=2022, stat='box'),
   `Player Game` = toRvik::bart_player_game(year=2022, stat='box'),
-  times = 1L,
+  times = 25L,
   unit = 'seconds'
 ))
 
@@ -170,11 +170,15 @@ data <- data[ min >= 20, .(player, id, team, result, min, pts)]
 # exclude players who only average 20+ minutes in either wins or losses but not in both splits
 data <- data[data[, .I[.N==2], by=.(id)]$V1][order(id, result)]
 
-# grouping by player, take the lead of the pts column -- which will always be points scored in wins b/c the data is ordered by result
+# grouping by player, take the lead of the pts column -- which will always be points scored in wins b/c the 
+# data is ordered by result
 data <- data[, in_wins := shift(pts, 1, type='lead'), .(player, id, team)]
 
 # calculate the difference in points scored in wins and losses
-data <- data[, difference := (in_wins - pts), .(player, id, team)][order(-difference)][(1:5),-c('result', 'min', 'id')]
+data <- data[, difference := (in_wins - pts), .(player, id, team)][order(-difference)]
+
+# select first five rows and specific columns
+data <- data[(1:5),-c('result', 'min', 'id')]
 
 # set clear column names
 setnames(data, c('Player', 'Team', 'Pts. in Losses', 'Pts. in Wins', 'Difference'))
@@ -189,7 +193,6 @@ Splittable stats is not a feature exclusive to player data. `toRvik` offers deta
 
 ```{r, message=FALSE, warning=FALSE, size='small', tidy=FALSE}
 library(data.table)
-library(glue)
 library(knitr)
 
 # grab data
@@ -207,8 +210,7 @@ setnames(data, c('Team', 'Record', 'Free Throw Rate'))
 
 # plot
 kable(data[(1:5)], format='simple',
-      caption = 'Which ACC team gets to the line most in home conference 
-      games?')
+      caption = 'Which ACC team gets to the line most in home conference games?')
 ```
 
 # Transfers and Recruits:
